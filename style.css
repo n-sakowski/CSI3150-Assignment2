@@ -1,13 +1,13 @@
 :root {
-  --bg-app: #0f172a;
-  --bg-panel: #1e293b;
-  --bg-card: #334155;
+  --bg-app: #003b1b;
+  --bg-panel: #2b5448;
+  --bg-card: #50514f;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-color: #475569;
 
-  --primary: #0284c7;
-  --primary-hover: #0369a1;
+  --primary: #ffeb5181;
+  --primary-hover: #ffec51;
   --danger: #ef4444;
   --warning: #f59e0b;
   --success: #10b981;
@@ -126,7 +126,7 @@ body {
 }
 
 .form-control {
-  background-color: var(--bg-app);
+  background-color: #ffffff21;
   border: 1px solid var(--border-color);
   color: var(--text-main);
   padding: 0.65rem 0.85rem;
@@ -135,6 +135,10 @@ body {
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
+}
+
+::placeholder {
+  color: #0700229f;
 }
 
 .form-control:focus {
@@ -146,6 +150,10 @@ body {
 .form-control.input-invalid {
   border-color: var(--danger);
   background-color: rgba(239, 68, 68, 0.05);
+}
+
+.form-input {
+  background-color: #ffffff67;
 }
 
 /* BUTTONS */
@@ -168,6 +176,7 @@ body {
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
+  color: black;
 }
 
 .btn-block {
@@ -242,7 +251,7 @@ body {
   border-radius: 6px;
   padding: 1rem;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 0.75rem;
 }
 
@@ -295,7 +304,7 @@ body {
   color: #fff;
 }
 
-.vitals-stats {
+.greenhouse-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;

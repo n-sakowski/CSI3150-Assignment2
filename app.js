@@ -1,21 +1,25 @@
+// Declare an IIFE (Immediately Invoked Function Expression)
 (function () {
   "use strict";
 
   const STORAGE_KEY = "puslecare_triage_records_v1";
 
-  const vitalsForm = document.getElementById("vitals-form");
+  const greenhouseForm = document.getElementById("greenhouse-form");
   const errorBanner = document.getElementById("form-error-banner");
   const recordsList = document.getElementById("records-list");
-  const queueCount = document.getElementById("queue-count");
+  const logCount = document.getElementById("log-count");
   const emptyState = document.getElementById("empty-state");
   const btnClearAll = document.getElementById("btn-clear-all");
 
-  const inputName = document.getElementById("patient-name");
-  const inputSystolic = document.getElementById("systolic");
-  const inputDiastolic = document.getElementById("diastolic");
-  const inputHeartRate = document.getElementById("heart-rate");
-  const inputSpo2 = document.getElementById("spo2");
-  const inputTemp = document.getElementById("temperature");
+  const inputName = document.getElementById("user-name");
+  const inputPH = document.getElementById("ph");
+  const inputEC = document.getElementById("ec");
+  const inputTemp = document.getElementById("temp");
+  const inputRH = document.getElementById("rh");
+
+  //   as above, it goes inputName, inputSystolic, inputDiastolic,
+  //                     inputTemp, and inputHeartRate
+  //                     COMPLETELY REMOVE inputSpo2 stuff!!!!!!!!!!!!!!!!!
 
   let records = loadRecords();
 
@@ -39,16 +43,40 @@
     }
   }
 
-  function evaluateRisk(systolic, diastolic, hr, spo2) {
-    if (systolic >= 180 || diastolic >= 120 || spo2 < 90 || hr >= 130) {
+  function evaluateRisk(ph, ec, temp, rh) {
+    console.log("pH:", ph);
+    console.log("EC:", ec);
+    console.log("Temperature:", temp);
+    console.log("Humidity:", rh);
+
+    console.log("pH critical:", ph < 5.0 || ph > 7.5);
+    console.log("Temperature critical:", temp < 55 || temp > 95);
+    console.log("EC critical:", ec < 0.2 || ec > 4.5);
+    console.log("Humidity critical:", rh < 30 || rh > 90);
+
+    if (
+      (ph < 5.0 || ph > 7.5) &&
+      (temp < 55 || temp > 95) &&
+      (ec < 0.2 || ec > 4.5) &&
+      (rh < 30 || rh > 90)
+    ) {
       return { level: "critical", label: "Critical" };
     }
 
-    if (systolic >= 130 || diastolic >= 80 || hr >= 100 || hr < 50) {
-      return { level: "elevated", label: "Elevated" };
+    if (
+      ph >= 5.5 &&
+      ph <= 6.5 &&
+      temp >= 64.4 &&
+      temp <= 71.6 &&
+      ec >= 1.0 &&
+      ec <= 2.0 &&
+      rh >= 50 &&
+      rh <= 70
+    ) {
+      return { level: "optimal", label: "Optimal" };
     }
 
-    return { level: "normal", label: "Normal" };
+    return { level: "warning", label: "Warning" };
   }
 
   // Validate form input
@@ -56,51 +84,40 @@
     const errors = [];
 
     if (!data.name.trim()) {
-      errors.push("Patient Name is a required field.");
+      errors.push("Full Name is a required field.");
     }
 
-    if (
-      !Number.isFinite(data.systolic) ||
-      data.systolic < 60 ||
-      data.systolic > 260
-    ) {
-      errors.push("Systolic BP must be a number between 60 and 260 mmHg.");
+    if (!Number.isFinite(data.ph) || data.ph < 0 || data.ph > 14) {
+      errors.push("pH must be a number between 0 and 14.");
     }
 
-    if (
-      !Number.isFinite(data.diastolic) ||
-      data.diastolic < 40 ||
-      data.diastolic > 150
-    ) {
-      errors.push("Diastolic BP must be a number between 40 and 150 mmHg.");
+    if (!Number.isFinite(data.ec) || data.ec < 0) {
+      errors.push("Electrical Conductivity must be a number above 0 mS/cm.");
     }
 
-    if (!Number.isFinite(data.hr) || data.hr < 30 || data.hr > 240) {
-      errors.push("Pulse must be a number between 30 and 240 bpm.");
+    if (!Number.isFinite(data.rh) || data.rh < 0 || data.rh > 100) {
+      errors.push(
+        "Relative Humidity must be a valid percentage between 0% and 100%.",
+      );
     }
 
-    if (!Number.isFinite(data.spo2) || data.spo2 < 50 || data.spo2 > 100) {
-      errors.push("SpO2 must be a number between 50 and 100%.");
-    }
-
-    if (!Number.isFinite(data.temp) || data.temp < 90 || data.temp > 110) {
-      errors.push("Body temperature must be a number between 90 and 110°F.");
+    if (!Number.isFinite(data.temp)) {
+      errors.push("Air Temperature is a required field.");
     }
 
     return errors;
   }
 
-  vitalsForm.addEventListener("submit", (event) => {
+  greenhouseForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const formData = {
       id: crypto.randomUUID(),
       name: inputName.value.trim(),
-      systolic: Number(inputSystolic.value),
-      diastolic: Number(inputDiastolic.value),
-      hr: Number(inputHeartRate.value),
-      spo2: Number(inputSpo2.value),
+      ph: Number(inputPH.value),
+      ec: Number(inputEC.value),
       temp: Number(inputTemp.value),
+      rh: Number(inputRH.value),
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -117,10 +134,10 @@
     hideError();
 
     formData.risk = evaluateRisk(
-      formData.systolic,
-      formData.diastolic,
-      formData.hr,
-      formData.spo2,
+      formData.ph,
+      formData.ec,
+      formData.temp,
+      formData.rh,
     );
 
     records.unshift(formData);
@@ -128,7 +145,7 @@
     saveRecords();
     render();
 
-    vitalsForm.reset();
+    greenhouseForm.reset();
     inputName.focus();
   });
 
@@ -158,7 +175,7 @@
   });
 
   function render() {
-    queueCount.textContent = records.length;
+    logCount.textContent = records.length;
 
     if (records.length === 0) {
       emptyState.classList.remove("hidden");
@@ -186,20 +203,20 @@
 
           <div class="vital-stats">
             <div class="stat-item">
-              <span>Blood Pressure</span>
-              ${rec.systolic}/${rec.diastolic} mmHg
+              <span>pH level:</span>
+              ${rec.ph}
             </div>
             <div class="stat-item">
-              <span>Pulse</span>
-              ${rec.hr} bpm
-            </div>
-            <div class="stat-item">
-              <span>Oxygen (SpO2)</span>
-              ${rec.spo2}%
+              <span>Electrical Conductivity (mS/cm)</span>
+              ${rec.ec} bpm
             </div>
             <div class="stat-item">
               <span>Temperature</span>
               ${Number(rec.temp).toFixed(1)} °F
+            </div>            
+            <div class="stat-item">
+              <span>Relative Humidity</span>
+              ${rec.rh} bpm
             </div>
           </div>
 
@@ -208,7 +225,7 @@
             class="btn btn-outline-danger btn-sm btn-discharge"
             data-id="${escapeHtml(rec.id)}"
           >
-            Discharge Patient
+            Delete
           </button>
         </div>
       `;
